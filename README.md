@@ -9,21 +9,22 @@ An AI-powered chatbot application designed to assist with DevOps tasks, question
 
 ## 🌟 Features
 
-- **AI-Powered Responses**: Uses Ollama with Llama 3.2 for intelligent DevOps assistance (100% free, runs locally)
-- **Modern UI**: Clean, responsive chat interface with smooth animations
+- **AI-Powered Responses**: Uses Ollama with Llama 3.1 8B for intelligent DevOps assistance (100% free, runs locally)
+- **Modern UI**: Clean, responsive chat interface with smooth animations and glassmorphism effects
 - **Conversation History**: Maintains context across multiple messages
 - **DevOps Expertise**: Specialized in Docker, Kubernetes, CI/CD, Terraform, Ansible, and more
 - **Production Ready**: Containerized with Docker and deployable to Kubernetes
 - **Health Checks**: Built-in health endpoints for monitoring
 - **Security**: Non-root container user, environment variable management
 - **No API Keys**: Runs completely locally with Ollama - no external API dependencies
+- **High Quality Responses**: 8B parameter model provides detailed explanations with code examples
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **Python 3.11** - Application runtime
 - **Flask** - Web framework
-- **Ollama** - Local LLM server (Llama 3.2 1B model)
+- **Ollama** - Local LLM server (Llama 3.1 8B model - 4.9GB)
 - **Gunicorn** - Production WSGI server
 
 ### Frontend
@@ -84,12 +85,12 @@ An AI-powered chatbot application designed to assist with DevOps tasks, question
 
    This will:
    - Start the Ollama server container
-   - Pull the Llama 3.2 1B model (first run takes 2-3 minutes)
+   - Pull the Llama 3.1 8B model (first run takes 2-3 minutes)
    - Start the Flask chatbot application
 
 2. **Pull the Ollama model** (if not already pulled):
    ```bash
-   docker exec ollama-server ollama pull llama3.2:1b
+   docker exec ollama-server ollama pull llama3.1:8b
    ```
 
 3. **Access the chatbot**:
@@ -200,10 +201,11 @@ The DevOps ChatBot can help with:
 
 You can change the model by updating the `OLLAMA_MODEL` environment variable:
 
-- `llama3.2:1b` - Smallest, fastest (1.3GB, recommended for systems with 4GB+ RAM)
-- `llama3.2:3b` - Balanced performance (2GB)
-- `llama2` - Original model (3.8GB, requires 8GB+ RAM)
-- `codellama` - Code-specialized model
+- `llama3.1:8b` - **CURRENT & RECOMMENDED** (4.9GB, best balance of quality and performance)
+- `llama3.2:3b` - Smaller, faster (2GB, good for limited RAM)
+- `llama3.2:1b` - Smallest, fastest (1.3GB, basic quality)
+- `llama2` - Original model (3.8GB, older version)
+- `codellama` - Code-specialized model (7B, 4.1GB)
 
 To switch models:
 ```bash
