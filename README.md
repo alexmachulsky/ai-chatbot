@@ -7,6 +7,17 @@ An intelligent AI-powered chatbot application that can assist with any topic - f
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue)
 
+## 🆕 Release Notes
+
+### v1.1.0 (Latest)
+
+- Added streaming responses for faster perceived chat speed
+- Added custom model picker UI with better cross-browser consistency
+- Added paste-first RAG flow (paste long text in chat to auto-index)
+- Migrated RAG storage to SQLite for multi-worker reliability
+- Added optional Web Mode with Google Custom Search integration
+- Improved health/status endpoints and runtime diagnostics
+
 ## 🌟 Features
 
 - **AI-Powered Responses**: Uses Ollama with Llama 3.1 8B for intelligent assistance across any topic (100% free, runs locally)

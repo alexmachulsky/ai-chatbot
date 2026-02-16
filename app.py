@@ -22,6 +22,7 @@ OLLAMA_NUM_PREDICT = int(os.getenv("OLLAMA_NUM_PREDICT", "192"))
 OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.6"))
 OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "30m")
 CHAT_HISTORY_MESSAGES = int(os.getenv("CHAT_HISTORY_MESSAGES", "6"))
+FLASK_ENV = os.getenv("FLASK_ENV", "production")
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
 RAG_CHUNK_SIZE = int(os.getenv("RAG_CHUNK_SIZE", "700"))
 RAG_CHUNK_OVERLAP = int(os.getenv("RAG_CHUNK_OVERLAP", "120"))
@@ -47,6 +48,10 @@ Provide clear, accurate, and helpful responses. Use examples when appropriate.
 Be conversational and friendly. If you're not sure about something, say so.
 Default to concise answers unless the user asks for deep detail.
 Keep default answers under 120 words and use short bullet points when possible."""
+WEB_MODE_CONFIG_ERROR = (
+    "Web Mode is enabled but Google lookup is not configured. "
+    "Set GOOGLE_API_KEY and GOOGLE_CSE_ID."
+)
 
 
 def tokenize(text):
@@ -60,7 +65,8 @@ def chunk_text(text, chunk_size=RAG_CHUNK_SIZE, overlap=RAG_CHUNK_OVERLAP):
     chunks = []
     step = max(1, chunk_size - overlap)
     for start in range(0, len(text), step):
-        part = text[start : start + chunk_size].strip()
+        stop = start + chunk_size
+        part = text[start:stop].strip()
         if part:
             chunks.append(part)
         if start + chunk_size >= len(text):
@@ -78,8 +84,7 @@ def init_rag_db():
         os.makedirs(db_dir, exist_ok=True)
 
     with get_db_connection() as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS rag_chunks (
                 id TEXT PRIMARY KEY,
                 filename TEXT NOT NULL,
@@ -87,8 +92,7 @@ def init_rag_db():
                 content TEXT NOT NULL,
                 tokens TEXT NOT NULL
             )
-            """
-        )
+            """)
 
 
 def rag_counts():
@@ -196,6 +200,13 @@ def web_lookup_configured():
     return bool(GOOGLE_API_KEY and GOOGLE_CSE_ID)
 
 
+def health_requires_ollama():
+    explicit = os.getenv("HEALTH_REQUIRE_OLLAMA")
+    if explicit is not None:
+        return explicit.strip().lower() in {"1", "true", "yes", "on"}
+    return FLASK_ENV != "testing"
+
+
 def fetch_google_results(query, top_k=WEB_LOOKUP_TOP_K):
     if not web_lookup_configured():
         return [], "not_configured"
@@ -213,7 +224,9 @@ def fetch_google_results(query, top_k=WEB_LOOKUP_TOP_K):
         )
 
         if not response.ok:
-            app.logger.error(f"Google lookup failed: {response.status_code} {response.text}")
+            app.logger.error(
+                f"Google lookup failed: {response.status_code} {response.text}"
+            )
             return [], "lookup_failed"
 
         items = response.json().get("items", [])
@@ -254,7 +267,10 @@ def build_system_prompt(rag_enabled, user_message, web_enabled=False, web_result
 
     matches = retrieve_context(user_message)
     if not matches:
-        return prompt + "\n\nRAG MODE: No matching document context found for this question."
+        return (
+            prompt
+            + "\n\nRAG MODE: No matching document context found for this question."
+        )
 
     context_blocks = []
     for match in matches:
@@ -420,7 +436,7 @@ def chat():
                     jsonify(
                         {
                             "success": False,
-                            "error": "Web Mode is enabled but Google lookup is not configured. Set GOOGLE_API_KEY and GOOGLE_CSE_ID.",
+                            "error": WEB_MODE_CONFIG_ERROR,
                         }
                     ),
                     400,
@@ -454,7 +470,7 @@ def chat():
         ollama_response = HTTP_SESSION.post(
             f"{OLLAMA_URL}/api/chat",
             json={
-            "model": selected_model,
+                "model": selected_model,
                 "messages": messages,
                 "stream": False,
                 "keep_alive": OLLAMA_KEEP_ALIVE,
@@ -528,7 +544,7 @@ def chat_stream():
                     jsonify(
                         {
                             "success": False,
-                            "error": "Web Mode is enabled but Google lookup is not configured. Set GOOGLE_API_KEY and GOOGLE_CSE_ID.",
+                            "error": WEB_MODE_CONFIG_ERROR,
                         }
                     ),
                     400,
@@ -624,7 +640,11 @@ def chat_stream():
             except Exception as exc:
                 yield (
                     json.dumps(
-                        {"type": "error", "error": "Streaming failed", "details": str(exc)}
+                        {
+                            "type": "error",
+                            "error": "Streaming failed",
+                            "details": str(exc),
+                        }
                     )
                     + "\n"
                 )
@@ -638,7 +658,8 @@ def chat_stream():
 @app.route("/api/health", methods=["GET"])
 def health():
     ready = ollama_is_ready()
-    status = "healthy" if ready else "degraded"
+    require_ollama = health_requires_ollama()
+    status = "healthy" if (ready or not require_ollama) else "degraded"
 
     return (
         jsonify(
@@ -647,10 +668,13 @@ def health():
                 "service": "devops-chatbot",
                 "ollama": "reachable" if ready else "unreachable",
                 "model": OLLAMA_MODEL,
-                "web_lookup": "configured" if web_lookup_configured() else "not_configured",
+                "web_lookup": (
+                    "configured" if web_lookup_configured() else "not_configured"
+                ),
+                "health_requires_ollama": require_ollama,
             }
         ),
-        200 if ready else 503,
+        200 if (ready or not require_ollama) else 503,
     )
 
 
