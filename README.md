@@ -12,6 +12,10 @@ An intelligent AI-powered chatbot application that can assist with any topic - f
 - **AI-Powered Responses**: Uses Ollama with Llama 3.1 8B for intelligent assistance across any topic (100% free, runs locally)
 - **Modern UI**: Clean, responsive chat interface with smooth animations and glassmorphism effects
 - **Conversation History**: Maintains context across multiple messages
+- **Streaming Responses**: Token-by-token output for faster perceived response time
+- **Model Switcher**: Choose installed Ollama models directly from the UI
+- **RAG Mode (Document Grounding)**: Paste long text directly in chat to auto-index and retrieve grounded context
+- **Live Web Lookup Mode**: Optional Google search grounding for fresher, time-sensitive answers
 - **General Knowledge**: Can discuss technology, science, business, arts, health, and much more
 - **Production Ready**: Containerized with Docker and deployable to Kubernetes
 - **Health Checks**: Built-in health endpoints for monitoring
@@ -190,6 +194,35 @@ Send a message to the chatbot.
 }
 ```
 
+### POST /api/chat/stream
+Stream chatbot tokens as newline-delimited JSON events.
+
+**Request**:
+```json
+{
+   "message": "What does Kubernetes use?",
+   "history": [],
+   "model": "llama3.2:1b",
+   "rag_enabled": true,
+   "web_enabled": true
+}
+```
+
+### GET /api/models
+Returns installed Ollama model names for the model picker.
+
+### GET /api/web/status
+Returns whether Google web lookup is configured.
+
+### POST /api/rag/upload
+Upload one document (txt, md, csv, log, json, yaml, yml) into RAG memory.
+
+### GET /api/rag/status
+Get current RAG document and chunk counts.
+
+### POST /api/rag/clear
+Clear loaded RAG documents from in-memory store.
+
 **Response**:
 ```json
 {
@@ -229,6 +262,17 @@ The AI ChatBot can help with:
 |----------|-------------|----------|---------|
 | `OLLAMA_URL` | Ollama server URL | No | `http://ollama:11434` |
 | `OLLAMA_MODEL` | Ollama model to use | No | `llama3.2:1b` |
+| `OLLAMA_NUM_PREDICT` | Max generated tokens per reply | No | `192` |
+| `OLLAMA_TEMPERATURE` | Response creativity level | No | `0.6` |
+| `OLLAMA_TIMEOUT_SECONDS` | Ollama read timeout | No | `120` |
+| `OLLAMA_KEEP_ALIVE` | Keep model loaded in memory | No | `30m` |
+| `CHAT_HISTORY_MESSAGES` | Max history messages sent per request | No | `6` |
+| `RAG_TOP_K` | Number of retrieved chunks per RAG query | No | `3` |
+| `RAG_CHUNK_SIZE` | Characters per RAG chunk | No | `700` |
+| `RAG_CHUNK_OVERLAP` | Character overlap between chunks | No | `120` |
+| `WEB_LOOKUP_TOP_K` | Max Google result snippets to include | No | `5` |
+| `GOOGLE_API_KEY` | Google Custom Search API key | For Web Mode | Empty |
+| `GOOGLE_CSE_ID` | Google Custom Search Engine ID | For Web Mode | Empty |
 | `FLASK_ENV` | Flask environment | No | `production` |
 | `FLASK_DEBUG` | Enable Flask debug mode | No | `False` |
 | `PORT` | Port to run the server | No | `5000` |

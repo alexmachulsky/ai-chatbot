@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: devops-chatbot
+  namespace: default
   labels:
     app: devops-chatbot
 spec:
@@ -16,25 +17,32 @@ spec:
     spec:
       containers:
       - name: chatbot
-        image: ai-chatbot:latest
+        image: devops-chatbot:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
+          name: http
+          protocol: TCP
         env:
-        - name: OLLAMA_URL
-          value: "http://192.168.18.241:11434"
-        - name: OLLAMA_MODEL
-          value: "llama3.1:8b"
         - name: FLASK_ENV
           valueFrom:
             configMapKeyRef:
               name: devops-chatbot-config
               key: FLASK_ENV
-        - name: FLASK_DEBUG
+        - name: PORT
           valueFrom:
             configMapKeyRef:
               name: devops-chatbot-config
-              key: FLASK_DEBUG
+              key: PORT
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name: devops-chatbot-config
+              key: HOST
+        - name: OLLAMA_URL
+          value: "http://192.168.18.241:11434"
+        - name: OLLAMA_MODEL
+          value: "llama3.1:8b"
         - name: SECRET_KEY
           value: "devops-chatbot-k8s-demo"
         resources:
@@ -60,3 +68,4 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
+      restartPolicy: Always

@@ -57,8 +57,8 @@ body::before {
 
 .container {
     width: 100%;
-    max-width: 1000px;
-    height: 90vh;
+    max-width: 1320px;
+    height: 95vh;
     display: flex;
     flex-direction: column;
     background: var(--bg-card);
@@ -287,6 +287,120 @@ body::before {
     padding: 1.5rem;
     background: rgba(21, 27, 53, 0.6);
     backdrop-filter: blur(10px);
+}
+
+.control-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.visually-hidden-select {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.model-dropdown {
+    position: relative;
+    min-width: 140px;
+}
+
+.model-dropdown-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.92rem;
+    transition: all 0.2s ease;
+}
+
+.model-dropdown-button i {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.model-dropdown.open .model-dropdown-button i {
+    transform: rotate(180deg);
+}
+
+.model-dropdown-button:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.model-dropdown-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.model-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    display: none;
+    background: #1a2147;
+    border: 1px solid var(--border-glass);
+    border-radius: 10px;
+    padding: 0.3rem;
+    z-index: 30;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.model-dropdown.open .model-dropdown-menu {
+    display: block;
+}
+
+.model-dropdown-item {
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #f5f7ff;
+    text-align: left;
+    padding: 0.5rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.model-dropdown-item:hover,
+.model-dropdown-item.active {
+    background: rgba(102, 126, 234, 0.35);
+}
+
+.control-toggle input {
+    accent-color: var(--accent-primary);
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+}
+
+.rag-status {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.8rem;
 }
 
 .input-container {
